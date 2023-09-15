@@ -1,0 +1,93 @@
+---
+title: "Sitescreening"
+author: "Samhällsanalys"
+date: "`r Sys.Date()`"
+output: html_document
+---
+:::{#header}
+<img src="logo_liggande_platta_farg.png" height="50" width="100" margin="0 auto"/>
+:::
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, include=FALSE}
+# libraries
+if (!require("pacman")) install.packages("pacman")
+pacman::p_load(tidyverse, sf, sp, httr, mapview, leaflet, readxl, keyring)
+
+source("G:/skript/func/func_GIS.R", encoding = "utf-8", echo = FALSE)
+source("G:/skript/func/func_postgis.R", encoding = "utf-8", echo = FALSE)
+source("G:/skript/func/func_filer.R", encoding = "utf-8", echo = FALSE)
+
+# För att komma förbi proxyn
+set_config(use_proxy(url = "http://mwg.ltdalarna.se", port = 9090, 
+                     username = key_list(service = "auth")$username, password = key_get("auth", key_list(service = "auth")$username)))
+set_config(config(ssl_verifypeer = 0L))
+
+# avoid scientific notation
+options(scipen=999)
+```
+
+
+```{r hamta_data, include=FALSE}
+
+utvalda_fastigheter_fil <- "G:/skript/henrik/GitHub/Region-Atlas/fran_philip/Extracted_location.gpkg"
+utvalda_fastigheter <- st_read(utvalda_fastigheter_fil, crs = 3006)
+
+vectoriserad_fil <- "G:/skript/henrik/GitHub/Region-Atlas/fran_philip/Vectorized_Dalarna_meran500.gpkg"
+vectoriserad <- st_read(vectoriserad_fil, crs = 3006)
+
+
+jarnvag_fil <- "G:/skript/henrik/GitHub/Region-Atlas/QGIS/ralstrafik.gpkg"
+
+jarnvag <- st_read(jarnvag_fil, crs = 3006)
+
+jarnvagstation_fil <- "G:/skript/henrik/GitHub/Region-Atlas/QGIS/ralstrafikstation.gpkg"
+
+jarnvagstation <- st_read(jarnvagstation_fil, crs = 3006)
+
+kommun_fil <- "G:/skript/henrik/GitHub/Region-Atlas/QGIS/Bara_Dalarnas_kommuner_SCB_07.shp"
+
+kommun <- st_read(kommun_fil, crs = 3006) %>% 
+  select("KNNAMN", "KNKOD", "LANDAREAKM", "KNBEF96") %>% 
+  rename("kommun" = "KNNAMN",
+         "kom_kod" = "KNKOD",
+         "area" = "LANDAREAKM",
+         "befolkning" = "KNBEF96")
+
+naturvard_fil <- "G:/skript/henrik/GitHub/Region-Atlas/fran_philip/naturvardsomr.gpkg"
+
+naturvard <- st_read(naturvard_fil, crs = 3006)
+
+industriomr_fil <- "G:/skript/henrik/GitHub/Region-Atlas/fran_philip/industriomr.gpkg"
+
+industriomr <- st_read(industriomr_fil, crs = 3006)
+
+transformatoromr_fil <- "G:/skript/henrik/GitHub/Region-Atlas/fran_philip/transformatoromr.gpkg"
+
+transformatoromr <- st_read(transformatoromr_fil, crs = 3006)
+
+# orgs = colorRampPalette(c('yellow', 'red'))
+sweden = colorRampPalette(c('yellow', 'blue'))
+skane = colorRampPalette(c("lightyellow", 'yellow', "orange", "red", 'darkred'))
+
+```
+
+```{r, include=TRUE, echo=FALSE}
+
+
+mapview(kommun, alpha = TRUE, legend = FALSE, alpha.regions = 0.0, label = "kommun")+
+  mapview(jarnvagstation, col.regions = "white", color = "black", cex = 2, legend = FALSE, label = "objekttyp", homebutton = FALSE)+
+  mapview(jarnvag, color = "grey29", lwd = 2, legend = FALSE, label = "straknamn", homebutton = FALSE)+
+  mapview(vectoriserad, layer.name = "poängsättning", homebutton = FALSE, alpha.regions = 0.5, lwd = 0.0, col.regions = skane)+ # ändra färg
+  mapview(utvalda_fastigheter, label = "fastighet", homebutton = FALSE, col.regions = c("yellow"))+
+  mapview(transformatoromr, label = "objekttyp", homebutton = FALSE, col.regions = c("green"), legend = FALSE)+#transformatoromr
+  mapview(industriomr, label = "objekttyp", homebutton = FALSE, alpha.regions = 0.5, col.regions = c("brown"), legend = FALSE)+#industriomr
+  mapview(naturvard, label = "objekttyp", homebutton = FALSE, alpha.regions = 0.5, col.regions = c("darkgreen"), legend = FALSE)##naturvard
+
+  
+  
+```
+
