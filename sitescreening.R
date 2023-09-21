@@ -44,7 +44,7 @@ kommun <- kommuner %>%
 vectoriserad_fil <- "G:/skript/henrik/GitHub/Region-Atlas/fran_philip/Vectorized_Dalarna_meran500.gpkg"
 vectoriserad <- st_read(vectoriserad_fil, crs = 3006)
 
-#vägar
+  #vägar
 #### NVDB från lokal drive G: (hämta från geodatabas i framtid)
 nvdb <- "G:/Samhällsanalys/GIS/Grundkartor/nvdb/"
 fil_nvdb <- "fixat_nvdb_riket_dalarna.gpkg"  # oklart vad som är fixat, men filen väger mindre än nvdb_riket
@@ -92,12 +92,23 @@ transformatoromr <- st_read(transformatoromr_fil, crs = 3006)
 elledningar_fil <- "G:/Samhällsanalys/GIS/projekt/Invest in Dalarna/utdata/elledningar/ledningar_ellevio.gpkg" #G:\Samhällsanalys\GIS\projekt\Invest in Dalarna\utdata\elledningar
 elledningar <- st_read(elledningar_fil, crs = 3006)
 
-#3 speciella stationer
-
-
+#3 speciella transformatorstationer
+repbacken_etc_fil <- "G:/Samhällsanalys/GIS/projekt/Invest in Dalarna/utdata/Repbäcken_etc.gpkg" 
+transformator_vip <- st_read(repbacken_etc_fil, crs = 3006) %>% 
+  st_buffer(1000)
 
 #flygplatser
 
+flygplats_fil <- "G:/Samhällsanalys/GIS/projekt/Invest in Dalarna/utdata/Flygplats.gpkg"
+
+flygplats_1 <- st_read(flygplats_fil, crs = 3006) %>% 
+  mutate(rep(c("Dalaflyget", "Dalaflyget", "Scandinavian Mountains AB"))) %>% 
+  mutate(rep(c("Dala Airport", "Mora/Siljan Flygplats", "Sälen/Trysil Airport"))) 
+
+glimpse(flygplats_1)
+flygplats <- flygplats_1 %>% 
+  rename(operator = `rep(c("Dalaflyget", "Dalaflyget", "Scandinavian Mountains AB"))`,
+         namn = `rep(c("Dala Airport", "Mora/Siljan Flygplats", "Sälen/Trysil Airport"))`)
 #kartan
 
 mapview(vectoriserad)
@@ -114,7 +125,7 @@ mapview(nvdb_dalarna, zcol = "vagnummer", color = greys, label = "vagnummer", lw
 #Kartan från RMD
 
 mapview(kommun, alpha = TRUE, legend = FALSE, alpha.regions = 0.0, label = "kommun", hide = TRUE)+
-  #mapview(jarnvagstation, col.regions = "white", color = "black", cex = 2, legend = FALSE, label = "objekttyp", homebutton = FALSE)+
+  #mapview(jarnvagstation, col.regions = "white", color = "black", cex = 1, legend = FALSE, label = "objekttyp", homebutton = FALSE)+
   mapview(jarnvag, color = "grey29", lwd = 2, legend = FALSE, label = "straknamn", homebutton = FALSE, hide = TRUE)+
   mapview(vectoriserad, layer.name = "poangsattning", homebutton = FALSE, alpha.regions = 0.5, lwd = 0.0, col.regions = skane)+ # ändra färg
   mapview(utvalda_fastigheter, label = "fastighet", legend = FALSE, homebutton = FALSE, alpha.regions = 0.5, col.regions = c("purple"), hide = TRUE)+
@@ -122,7 +133,9 @@ mapview(kommun, alpha = TRUE, legend = FALSE, alpha.regions = 0.0, label = "komm
   mapview(industriomr, label = "objekttyp", homebutton = FALSE, alpha.regions = 0.5, col.regions = c("brown"), legend = FALSE, hide = TRUE)+#industriomr
   mapview(naturvard, label = "objekttyp", homebutton = FALSE, alpha.regions = 0.5, col.regions = c("darkgreen"), legend = FALSE, hide = TRUE)+##naturvard
   mapview(elledningar, color = "green", lwd = 2, legend = FALSE, label = "objekttyp", homebutton = FALSE, hide = TRUE)+
-  mapview(nvdb_dalarna, zcol = "vagnummer", color = greys, label = "vagnummer", lwd = 2, alpha = 0.5, legend = FALSE, homebutton = FALSE, hide = TRUE, layer.name = "Stora vagar")
+  mapview(nvdb_dalarna, zcol = "vagnummer", color = greys, label = "vagnummer", lwd = 2, alpha = 0.5, legend = FALSE, homebutton = FALSE, hide = TRUE, layer.name = "vagar")+
+  mapview(flygplats, col.regions = "red", color = "white", cex = 6, legend = FALSE, label = "namn", homebutton = FALSE, hide = TRUE)+
+  mapview(transformator_vip, col.regions = "green", color = "white", cex = 6, legend = FALSE, label = "objekttyp", homebutton = FALSE, hide = TRUE)
 
 
 
